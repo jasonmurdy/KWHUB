@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg width='32' height='32' viewBox='0 0 32 32' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='32' height='32' rx='8' fill='url(%23grad)'/%3E%3Cpath d='M10 8V24M10 16L22 8M16 16L22 24' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0' y1='0' x2='32' y2='32' gradientUnits='userSpaceOnUse'%3E%3Cstop stop-color='%238b5cf6'/%3E%3Cstop offset='1' stop-color='%23ec4899'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#8b5cf6" />
+    <link rel="manifest" href="public/manifest.json" />
+    <title>KW Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* --- THEME DEFINITIONS --- */
+      
+      :root {
+        /* Default: Modern KW (Light/Vibrant) */
+        --bg-main: 247 250 252;
+        --bg-card: 255 255 255;
+        --text-main: 28 32 36;
+        --text-muted: 68 76 84;
+        --color-primary: 139 92 246;      /* Violet-500 */
+        --color-secondary: 236 72 153;    /* Pink-500 */
+        --color-outline: 204 214 224;
+        --font-heading: 'Roboto', sans-serif;
+        --card-blur: 0px;
+        --border-width: 1px;
+        --card-opacity: 1;
+        --card-shadow: none;
+      }
+
+      [data-theme='elite'] {
+        /* Elite: Luxury Dark (High Contrast) */
+        --bg-main: 5 5 5;                 /* Near Black */
+        --bg-card: 23 23 23;              /* Dark Grey Surface */
+        --text-main: 250 250 250;         /* Off-White */
+        --text-muted: 163 163 163;        /* Lighter Grey (Neutral 400) */
+        --color-primary: 239 68 68;       /* Red 500 - Brighter for contrast */
+        --color-secondary: 127 29 29;     /* Red 900 */
+        --color-outline: 82 82 82;        /* Brighter for glass edge (Neutral 700) */
+        --font-heading: 'Cormorant Garamond', serif;
+        --card-blur: 16px;                /* Glassmorphism blur */
+        --border-width: 1px;
+        --card-opacity: 0.2;
+        --card-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+        --bg-main-image: radial-gradient(circle at 10% 20%, rgba(220, 38, 38, 0.15) 0%, transparent 25%),
+                         radial-gradient(circle at 85% 70%, rgba(127, 29, 29, 0.1) 0%, transparent 30%);
+      }
+
+      [data-theme='dynamic'] {
+        /* Dynamic: Future Tech (High Contrast) */
+        --bg-main: 2 6 23;                /* Slate 950 */
+        --bg-card: 15 23 42;              /* Slate 900 */
+        --text-main: 241 245 249;         /* Slate 100 */
+        --text-muted: 100 116 139;        /* Slate 500 */
+        --color-primary: 14 116 144;      /* Cyan 700 - Darker for contrast */
+        --color-secondary: 99 102 241;    /* Indigo 500 */
+        --color-outline: 51 65 85;        /* Lighter (Slate 700) */
+        --font-heading: 'Roboto', sans-serif;
+        --card-blur: 12px;                /* Glassmorphism blur */
+        --border-width: 1px;              /* Thinner for glass */
+        --card-opacity: 0.15;
+        --card-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+        --bg-main-image: radial-gradient(circle at 90% 10%, rgba(34, 211, 238, 0.15) 0%, transparent 20%),
+                         radial-gradient(circle at 20% 80%, rgba(99, 102, 241, 0.1) 0%, transparent 25%);
+      }
+
+      [data-theme='nature'] {
+        /* Nature: Fresh & Earthy (High Contrast Light) */
+        --bg-main: 242 248 245;           /* Very Pale Green/Grey */
+        --bg-card: 255 255 255;
+        --text-main: 20 30 25;            /* Dark Forest Green/Black */
+        --text-muted: 70 85 75;           /* Muted Sage */
+        --color-primary: 22 101 52;       /* Green 800 - Darker for contrast */
+        --color-secondary: 113 63 18;     /* Amber 900 - Darker for contrast */
+        --color-outline: 209 213 219;     /* Gray 300 */
+        --font-heading: 'Roboto', sans-serif;
+        --card-blur: 0px;
+        --border-width: 1px;
+        --card-shadow: none;
+      }
+
+      [data-theme='ocean'] {
+        /* Ocean: Crisp & Professional (High Contrast Light) */
+        --bg-main: 240 249 255;           /* Very Pale Blue (Sky 50) */
+        --bg-card: 255 255 255;
+        --text-main: 15 23 42;            /* Slate 900 - Deep Navy */
+        --text-muted: 71 85 105;          /* Slate 500 */
+        --color-primary: 7 89 133;        /* Sky 800 - Darker for contrast */
+        --color-secondary: 17 94 89;      /* Teal 800 - Darker for contrast */
+        --color-outline: 203 213 225;     /* Slate 300 */
+        --font-heading: 'Roboto', sans-serif;
+        --card-blur: 0px;
+        --border-width: 1px;
+        --card-shadow: none;
+      }
+
+      [data-theme='sunset'] {
+        /* Sunset: Energetic Gradient (Warm Glass) */
+        --bg-main: 255 247 237;           /* Orange 50 */
+        --bg-card: 255 255 255;
+        --text-main: 67 20 7;             /* Brown 900 */
+        --text-muted: 154 52 18;          /* Orange 800 */
+        --color-primary: 234 88 12;       /* Orange 600 */
+        --color-secondary: 219 39 119;    /* Pink 600 */
+        --color-outline: 253 186 116;     /* Orange 300 */
+        --font-heading: 'Roboto', sans-serif;
+        --card-blur: 24px;
+        --border-width: 1px;
+        --card-opacity: 0.6;
+        --card-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        --bg-main-image: linear-gradient(135deg, rgba(255,237,213,1) 0%, rgba(255,228,230,1) 100%);
+      }
+
+      [data-theme='cyberpunk'] {
+        /* Cyberpunk: Neon Dark (High Contrast) */
+        --bg-main: 9 9 11;                /* Zinc 950 */
+        --bg-card: 24 24 27;              /* Zinc 900 */
+        --text-main: 228 228 231;         /* Zinc 200 */
+        --text-muted: 113 113 122;        /* Zinc 500 */
+        --color-primary: 45 212 191;      /* Teal 400 (Neon) */
+        --color-secondary: 236 72 153;    /* Pink 500 (Neon) */
+        --color-outline: 63 63 70;        /* Zinc 700 */
+        --font-heading: 'Roboto', sans-serif;
+        --card-blur: 0px;                 /* No blur for sharp tech feel */
+        --border-width: 1px;
+        --card-opacity: 0.95;
+        --card-shadow: 0 0 15px rgba(45, 212, 191, 0.2);
+        --bg-main-image: repeating-linear-gradient(45deg, rgba(45, 212, 191, 0.03) 0px, rgba(45, 212, 191, 0.03) 1px, transparent 1px, transparent 10px);
+      }
+
+      [data-theme='nordic'] {
+        /* Nordic: Minimalist Luxury (Serif & Muted) */
+        --bg-main: 248 250 252;           /* Slate 50 */
+        --bg-card: 255 255 255;
+        --text-main: 51 65 85;            /* Slate 700 */
+        --text-muted: 148 163 184;        /* Slate 400 */
+        --color-primary: 71 85 105;       /* Slate 600 */
+        --color-secondary: 148 163 184;   /* Slate 400 */
+        --color-outline: 226 232 240;     /* Slate 200 */
+        --font-heading: 'Cormorant Garamond', serif; /* Elegant Serif */
+        --card-blur: 0px;
+        --border-width: 1px;
+        --card-opacity: 1;
+        --card-shadow: none;
+        --bg-main-image: none;
+      }
+
+      [data-theme='dashboard'] {
+        /* Dashboard: Clean Mobile Concept */
+        --bg-main: 248 250 252;           /* Slate 50 */
+        --bg-card: 255 255 255;
+        --text-main: 15 23 42;            /* Slate 900 */
+        --text-muted: 100 116 139;        /* Slate 500 */
+        --color-primary: 79 70 229;       /* Indigo 600 */
+        --color-secondary: 167 139 250;   /* Violet 400 */
+        --color-outline: 226 232 240;     /* Slate 200 */
+        --font-heading: 'Inter', sans-serif;
+        --card-blur: 0px;
+        --border-width: 0px;              /* Remove border for softer look */
+        --card-opacity: 1;
+        --card-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        --bg-main-image: linear-gradient(180deg, rgba(226, 232, 240, 0.3) 0%, rgba(241, 245, 249, 0) 100%);
+      }
+
+      /* Global Styles */
+      * {
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      }
+      
+      body {
+        background-image: var(--bg-main-image, none);
+        background-attachment: fixed;
+      }
+
+      h1, h2, h3, .font-heading {
+        font-family: var(--font-heading) !important;
+      }
+
+      .card-themed {
+        background-color: rgb(var(--bg-card) / var(--card-opacity));
+        border: var(--border-width) solid rgb(var(--color-outline));
+        backdrop-filter: blur(var(--card-blur));
+        -webkit-backdrop-filter: blur(var(--card-blur));
+        box-shadow: var(--card-shadow);
+      }
+
+      button:active, [role="button"]:active {
+        transform: scale(0.96);
+        transition-duration: 0.05s;
+      }
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgb(var(--color-outline));
+        border-radius: 4px;
+      }
+      
+      /* Tiptap Editor Styles */
+      .ProseMirror {
+        outline: none;
+      }
+      .ProseMirror p.is-editor-empty:first-child::before {
+        color: rgb(var(--text-muted));
+        content: attr(data-placeholder);
+        float: left;
+        height: 0;
+        pointer-events: none;
+      }
+      .ProseMirror h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+      .ProseMirror h2 { font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem; margin-top: 1rem; }
+      .ProseMirror ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.5rem; }
+      .ProseMirror ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.5rem; }
+      .ProseMirror blockquote { border-left: 3px solid rgb(var(--color-primary)); padding-left: 1rem; font-style: italic; }
+    </style>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              'main': 'rgb(var(--bg-main) / <alpha-value>)',
+              'card': 'rgb(var(--bg-card) / <alpha-value>)',
+              'text-main': 'rgb(var(--text-main) / <alpha-value>)',
+              'text-muted': 'rgb(var(--text-muted) / <alpha-value>)',
+              'primary': 'rgb(var(--color-primary) / <alpha-value>)',
+              'on-primary': '#ffffff',
+              'secondary': 'rgb(var(--color-secondary) / <alpha-value>)',
+              'outline': 'rgb(var(--color-outline) / <alpha-value>)',
+              
+              /* Semantic Aliases for compatibility */
+              'background': 'rgb(var(--bg-main) / <alpha-value>)',
+              'surface': 'rgb(var(--bg-card) / <alpha-value>)',
+              'on-background': 'rgb(var(--text-main) / <alpha-value>)',
+              'on-surface': 'rgb(var(--text-main) / <alpha-value>)',
+              'surface-variant': 'rgb(var(--bg-main) / 0.5)',
+              
+              'success': '#10B981',
+              'warning': '#F59E0B',
+              'danger': '#EF4444',
+            },
+            fontFamily: {
+              sans: ['Roboto', 'Inter', 'sans-serif'],
+              heading: ['var(--font-heading)', 'serif'],
+            },
+            boxShadow: {
+              'm3-sm': '0 1px 2px 0 rgb(0 0 0 / 0.1), 0 1px 3px 0 rgb(0 0 0 / 0.08)',
+              'm3-md': '0 2px 4px -1px rgb(0 0 0 / 0.1), 0 4px 5px 0 rgb(0 0 0 / 0.08)',
+              'm3-lg': '0 4px 6px -2px rgb(0 0 0 / 0.1), 0 12px 16px -4px rgb(0 0 0 / 0.08)',
+            },
+          },
+        },
+      }
+    </script>
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=roboto:400,500,600,700|cormorant-garamond:500,600,700" rel="stylesheet" />
+    <script src="https://apis.google.com/js/api.js" async defer></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.1",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.29.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "firebase/storage": "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.5.0/",
+    "react-markdown": "https://aistudiocdn.com/react-markdown@^9.0.1",
+    "remark-gfm": "https://aistudiocdn.com/remark-gfm@^4.0.0",
+    "@heroicons/react/": "https://aistudiocdn.com/@heroicons/react@^2.2.0/",
+    "framer-motion": "https://aistudiocdn.com/framer-motion@^11.2.12",
+    "canvas-confetti": "https://esm.sh/canvas-confetti",
+    "@tiptap/react": "https://esm.sh/@tiptap/react@2.1.13?external=react,react-dom",
+    "@tiptap/starter-kit": "https://esm.sh/@tiptap/starter-kit@2.1.13?external=react,react-dom",
+    "@tiptap/extension-placeholder": "https://esm.sh/@tiptap/extension-placeholder@2.1.13?external=react,react-dom",
+    "@tiptap/pm/state": "https://esm.sh/prosemirror-state",
+    "@tiptap/pm/view": "https://esm.sh/prosemirror-view",
+    "@tiptap/pm/model": "https://esm.sh/prosemirror-model",
+    "@tiptap/pm/transform": "https://esm.sh/prosemirror-transform",
+    "@tiptap/pm/commands": "https://esm.sh/prosemirror-commands",
+    "@tiptap/pm/history": "https://esm.sh/prosemirror-history",
+    "@tiptap/pm/keymap": "https://esm.sh/prosemirror-keymap",
+    "@tiptap/pm/schema-list": "https://esm.sh/prosemirror-schema-list",
+    "@tiptap/core": "https://esm.sh/@tiptap/core@2.1.13?external=react,react-dom"
+  }
+}
+</script>
+</head>
+  <body class="bg-main text-text-main font-sans">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,32 @@
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Avatars: Users can only write their own avatar. Anyone can read avatars.
+    match /avatars/{userId}/{fileName} {
+      allow read;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Task Attachments: Any authenticated user can read or write attachments.
+    // For more granular security, you could link this to project membership via Firestore.
+    match /task_attachments/{taskId}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    
+    // Team Files: Any authenticated user can read or write team files.
+    match /team_files/{teamId}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+
+    // Compliance Documents: Users can only write/delete their own documents. Anyone can read.
+    match /compliance_docs/{userId}/{fileName} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

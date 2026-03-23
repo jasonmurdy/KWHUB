@@ -1,0 +1,274 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields:
+    //   - name: string (required)
+    //   - email: string (required, email format)
+    //   - avatarUrl: string (optional)
+    //   - role: string (optional, enum: ['admin', 'user'])
+    //   - googleChatWebhook: string (optional)
+    //
+    // Collection: teams
+    // Fields:
+    //   - name: string (required)
+    //   - memberIds: list of strings (required, UIDs)
+    //   - dailySummaryWebhook: string (optional)
+    //   - weeklySummaryWebhook: string (optional)
+    //   - goals: list of objects (optional)
+    //
+    // Collection: projects
+    // Fields:
+    //   - name: string (required)
+    //   - teamId: string (required)
+    //   - memberIds: list of strings (required, UIDs)
+    //   - workflow: list of objects (optional)
+    //   - integrations: map (optional)
+    //   - createdAt: timestamp (optional)
+    //
+    // Collection: tasks
+    // Fields:
+    //   - projectId: string (required)
+    //   - title: string (required)
+    //   - description: string (optional)
+    //   - status: string (required)
+    //   - statusId: string (optional)
+    //   - priority: string (optional, enum: ['Low', 'Medium', 'High'])
+    //   - assigneeIds: list of strings (optional, UIDs)
+    //   - memberIds: list of strings (required, UIDs)
+    //   - reporterId: string (optional)
+    //   - createdAt: timestamp (optional)
+    //   - dueDate: timestamp (optional)
+    //   - startDate: timestamp (optional)
+    //   - auditTrail: list of objects (optional)
+    //   - subtasks: list of objects (optional)
+    //   - comments: list of objects (optional)
+    //   - attachments: list of objects (optional)
+    //   - recurrence: string (optional)
+    //
+    // Collection: notifications
+    // Fields:
+    //   - userId: string (required, UID)
+    //   - type: string (required)
+    //   - message: string (required)
+    //   - createdAt: timestamp (required)
+    //   - read: bool (optional)
+    //   - link: string (optional)
+    //
+    // Collection: forms
+    // Fields:
+    //   - name: string (required)
+    //   - type: string (optional)
+    //   - creatorId: string (required, UID)
+    //   - fields: list of objects (optional)
+    //
+    // Collection: form_responses
+    // Fields:
+    //   - formId: string (required)
+    //   - data: map (required)
+    //   - submittedAt: timestamp (optional)
+    //
+    // Collection: public_checklists
+    // Fields:
+    //   - taskId: string (required)
+    //   - subtasks: list of objects (required)
+    //   - updatedAt: timestamp (optional)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "jasonmurdy@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function isMemberOfTeam(teamId) {
+      return isAuthenticated() && request.auth.uid in get(/databases/$(database)/documents/teams/$(teamId)).data.memberIds;
+    }
+
+    function isMemberOfProject(projectId) {
+      return isAuthenticated() && request.auth.uid in get(/databases/$(database)/documents/projects/$(projectId)).data.memberIds;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return hasRequiredFields(['name', 'email']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             isValidEmail(data.email) &&
+             (!('role' in data) || data.role in ['admin', 'user']);
+    }
+
+    function isValidTeam(data) {
+      return hasRequiredFields(['name', 'memberIds']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.memberIds is list;
+    }
+
+    function isValidProject(data) {
+      return hasRequiredFields(['name', 'teamId', 'memberIds']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             data.teamId is string &&
+             data.memberIds is list;
+    }
+
+    function isValidTask(data) {
+      return hasRequiredFields(['projectId', 'title', 'status', 'memberIds']) &&
+             data.projectId is string &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.status is string &&
+             data.memberIds is list &&
+             (!('priority' in data) || data.priority in ['Low', 'Medium', 'High']);
+    }
+
+    function isValidNotification(data) {
+      return hasRequiredFields(['userId', 'type', 'message', 'createdAt']) &&
+             data.userId is string &&
+             data.type is string &&
+             data.message is string && data.message.size() > 0 && data.message.size() < 1000;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+
+    match /users/{userId} {
+      // Users can read their own profile. Admins can read all.
+      // If we need public profiles, we should split the collection.
+      // Assuming for now that users only read their own data.
+      allow read: if isOwner(userId) || isAdmin();
+      
+      // Users can create their own profile as 'user' role.
+      // Admins can create any profile.
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && 
+                    ((isOwner(userId) && (!('role' in request.resource.data) || request.resource.data.role == 'user')) || isAdmin());
+      
+      // Users can update their own profile but NOT their role.
+      // Admins can update anything.
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && 
+                    ((isOwner(userId) && (request.resource.data.role == resource.data.role)) || isAdmin());
+    }
+
+    match /teams/{teamId} {
+      // Members of the team can read.
+      allow read: if isAuthenticated() && (request.auth.uid in resource.data.memberIds || isAdmin());
+      
+      // Any authenticated user can create a team.
+      allow create: if isAuthenticated() && isValidTeam(request.resource.data);
+      
+      // Members can update the team.
+      allow update: if isAuthenticated() && (request.auth.uid in resource.data.memberIds || isAdmin()) && isValidTeam(request.resource.data);
+      
+      // Only admins can delete teams.
+      allow delete: if isAdmin();
+    }
+
+    match /projects/{projectId} {
+      // Members of the project can read.
+      allow read: if isAuthenticated() && (request.auth.uid in resource.data.memberIds || isAdmin());
+      
+      // Members of the parent team can create projects.
+      allow create: if isAuthenticated() && isValidProject(request.resource.data) && 
+                    (isMemberOfTeam(request.resource.data.teamId) || isAdmin());
+      
+      // Members can update.
+      allow update: if isAuthenticated() && (request.auth.uid in resource.data.memberIds || isAdmin()) && isValidProject(request.resource.data);
+      
+      allow delete: if isAdmin();
+    }
+
+    match /tasks/{taskId} {
+      // Members of the task can read.
+      allow read: if isAuthenticated() && (request.auth.uid in resource.data.memberIds || isAdmin());
+      
+      // Members of the parent project can create tasks.
+      allow create: if isAuthenticated() && isValidTask(request.resource.data) && 
+                    (isMemberOfProject(request.resource.data.projectId) || isAdmin());
+      
+      // Members can update.
+      allow update: if isAuthenticated() && (request.auth.uid in resource.data.memberIds || isAdmin()) && isValidTask(request.resource.data);
+      
+      allow delete: if isAuthenticated() && (request.auth.uid in resource.data.memberIds || isAdmin());
+    }
+
+    match /notifications/{notifId} {
+      // Users can read their own notifications.
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      
+      // System/Admins can create notifications. 
+      // In this app, the frontend might create some notifications too.
+      allow create: if isAuthenticated() && isValidNotification(request.resource.data);
+      
+      // Users can mark their own as read.
+      allow update: if isOwner(resource.data.userId) && 
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      
+      allow delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
+    match /forms/{formId} {
+      // Forms are publicly readable if the app allows it, or restricted to members.
+      // Assuming members can read.
+      allow read: if isAuthenticated();
+      
+      allow create: if isAuthenticated() && request.resource.data.creatorId == request.auth.uid;
+      
+      allow update: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
+      
+      allow delete: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
+    }
+
+    match /form_responses/{responseId} {
+      // Form responses are usually private to the form creator.
+      allow read: if isAuthenticated() && 
+                  get(/databases/$(database)/documents/forms/$(resource.data.formId)).data.creatorId == request.auth.uid;
+      
+      // Anyone can submit a form (even unauthenticated if needed, but here we require auth).
+      allow create: if isAuthenticated();
+    }
+
+    match /public_checklists/{token} {
+      // Public checklists are readable by anyone with the token.
+      allow read: if true;
+      
+      // Updated by the sync function or the public UI.
+      allow write: if true; // Ideally restricted, but "public" implies open access via token.
+    }
+  }
+}

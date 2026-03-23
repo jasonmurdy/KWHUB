@@ -1,0 +1,153 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "avatarUrl": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user"] },
+        "googleChatWebhook": { "type": "string" }
+      },
+      "required": ["name", "email"]
+    },
+    "Team": {
+      "title": "Team",
+      "description": "A group of users collaborating on projects.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "memberIds": { "type": "array", "items": { "type": "string" } },
+        "dailySummaryWebhook": { "type": "string" },
+        "weeklySummaryWebhook": { "type": "string" },
+        "goals": { "type": "array", "items": { "type": "object" } }
+      },
+      "required": ["name", "memberIds"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "A project containing tasks.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "teamId": { "type": "string" },
+        "memberIds": { "type": "array", "items": { "type": "string" } },
+        "workflow": { "type": "array", "items": { "type": "object" } },
+        "integrations": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "teamId", "memberIds"]
+    },
+    "Task": {
+      "title": "Task",
+      "description": "A unit of work within a project.",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string" },
+        "statusId": { "type": "string" },
+        "priority": { "type": "string", "enum": ["Low", "Medium", "High"] },
+        "assigneeIds": { "type": "array", "items": { "type": "string" } },
+        "memberIds": { "type": "array", "items": { "type": "string" } },
+        "reporterId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "startDate": { "type": "string", "format": "date-time" },
+        "targetDate": { "type": "string", "format": "date-time" },
+        "eventDate": { "type": "string", "format": "date-time" },
+        "auditTrail": { "type": "array", "items": { "type": "object" } },
+        "subtasks": { "type": "array", "items": { "type": "object" } },
+        "comments": { "type": "array", "items": { "type": "object" } },
+        "attachments": { "type": "array", "items": { "type": "object" } },
+        "recurrence": { "type": "string" }
+      },
+      "required": ["projectId", "title", "status", "memberIds"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "A message for a user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "type": { "type": "string" },
+        "message": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "read": { "type": "boolean" },
+        "link": { "type": "string" }
+      },
+      "required": ["userId", "message", "createdAt"]
+    },
+    "Form": {
+      "title": "Form",
+      "description": "A lead capture or data collection form.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "creatorId": { "type": "string" },
+        "fields": { "type": "array", "items": { "type": "object" } }
+      },
+      "required": ["name", "creatorId"]
+    },
+    "FormResponse": {
+      "title": "FormResponse",
+      "description": "A submission for a form.",
+      "type": "object",
+      "properties": {
+        "formId": { "type": "string" },
+        "data": { "type": "object" },
+        "submittedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["formId", "data"]
+    },
+    "PublicChecklist": {
+      "title": "PublicChecklist",
+      "description": "A shared checklist for a task.",
+      "type": "object",
+      "properties": {
+        "taskId": { "type": "string" },
+        "subtasks": { "type": "array", "items": { "type": "object" } },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["taskId", "subtasks"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "User" },
+      "description": "User profiles."
+    },
+    "/teams/{teamId}": {
+      "schema": { "$ref": "Team" },
+      "description": "Teams."
+    },
+    "/projects/{projectId}": {
+      "schema": { "$ref": "Project" },
+      "description": "Projects."
+    },
+    "/tasks/{taskId}": {
+      "schema": { "$ref": "Task" },
+      "description": "Tasks."
+    },
+    "/notifications/{notifId}": {
+      "schema": { "$ref": "Notification" },
+      "description": "User notifications."
+    },
+    "/forms/{formId}": {
+      "schema": { "$ref": "Form" },
+      "description": "Forms."
+    },
+    "/form_responses/{responseId}": {
+      "schema": { "$ref": "FormResponse" },
+      "description": "Form submissions."
+    },
+    "/public_checklists/{token}": {
+      "schema": { "$ref": "PublicChecklist" },
+      "description": "Publicly shared checklists."
+    }
+  }
+}
