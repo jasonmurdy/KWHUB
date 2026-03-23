@@ -1,0 +1,7 @@
+{
+  "name": "KW Hub",
+  "description": "A collaborative hub for Keller Williams agents to manage transactions, inspire growth, and streamline operations.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
